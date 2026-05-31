@@ -28,7 +28,7 @@ export default function VideoPreview({ title, thumbnail, duration, platform }: P
       <div className="min-w-0">
         <h2 className="text-sm font-semibold text-gray-900 line-clamp-2">{title}</h2>
         <p className="text-xs text-gray-500 mt-1">
-          {formatDuration(duration)} · {PLATFORM_LABELS[platform] ?? platform}
+          {duration > 0 ? `${formatDuration(duration)} · ` : ''}{PLATFORM_LABELS[platform] ?? platform}
         </p>
       </div>
     </div>
