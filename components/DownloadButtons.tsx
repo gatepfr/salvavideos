@@ -13,18 +13,22 @@ interface Props {
   onDownloadEnd: () => void
 }
 
+function isYouTube(url: string) {
+  return url.includes('youtube.com') || url.includes('youtu.be')
+}
+
 export default function DownloadButtons({ url, formats, onDownloadStart, onDownloadEnd }: Props) {
   async function handleDownload(format: string) {
     onDownloadStart()
     try {
-      const res = await fetch(`/api/download?url=${encodeURIComponent(url)}&format=${format}`)
-      if (!res.ok) throw new Error('Download failed')
-      const data = await res.json()
-      if (data.cobaltUrl) {
-        // YouTube: server IPs are blocked, send user to cobalt.tools
-        window.open(data.cobaltUrl, '_blank', 'noopener')
+      if (isYouTube(url)) {
+        // YouTube is blocked on server — open cobalt.tools directly
+        const res = await fetch(`/api/download?url=${encodeURIComponent(url)}&format=${format}`)
+        const data = await res.json()
+        if (data.cobaltUrl) window.open(data.cobaltUrl, '_blank', 'noopener')
       } else {
-        window.location.href = data.redirectUrl
+        // Navigate directly — browser starts the proxied stream as a file download
+        window.location.href = `/api/download?url=${encodeURIComponent(url)}&format=${format}`
       }
     } finally {
       onDownloadEnd()
