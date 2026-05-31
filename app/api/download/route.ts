@@ -73,6 +73,6 @@ export async function GET(request: NextRequest) {
     if (/timeout/i.test(message)) {
       return NextResponse.json({ error: 'Download demorou demais. Tente novamente.' }, { status: 504 })
     }
-    return NextResponse.json({ error: 'Não foi possível baixar este vídeo.' }, { status: 500 })
+    return NextResponse.json({ error: 'Não foi possível baixar este vídeo.', debug: message }, { status: 500 })
   }
 }
