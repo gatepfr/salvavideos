@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDirectUrl } from '@/lib/ytdlp'
+import { spawnStream } from '@/lib/ytdlp'
 import { isAllowedUrl } from '@/lib/validate-url'
 import { detectPlatform } from '@/lib/video-info'
 
 export const maxDuration = 60
 
 const VALID_FORMATS = new Set(['mp4_720', 'mp4_1080', 'mp3'])
-
-const REFERERS: Record<string, string> = {
-  tiktok: 'https://www.tiktok.com/',
-  instagram: 'https://www.instagram.com/',
-}
 
 const EXTENSIONS: Record<string, string> = {
   mp4_720: 'mp4',
@@ -40,33 +35,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const cdnUrl = await getDirectUrl(url, format as 'mp4_720' | 'mp4_1080' | 'mp3')
-
-    // Proxy through server: CDN requires Referer header that browsers won't send
-    // when following a redirect from a different origin.
-    const upstream = await fetch(cdnUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
-        'Referer': REFERERS[platform] ?? 'https://www.google.com/',
-      },
-      signal: AbortSignal.timeout(55_000),
-    })
-
-    if (!upstream.ok) {
-      console.error('[/api/download] upstream', upstream.status, cdnUrl)
-      return NextResponse.json({ error: 'Não foi possível baixar este vídeo.' }, { status: 502 })
-    }
-
+    const fmt = format as 'mp4_720' | 'mp4_1080' | 'mp3'
+    const stream = await spawnStream(url, fmt)
     const ext = EXTENSIONS[format] ?? 'mp4'
-    const headers = new Headers({
-      'Content-Type': upstream.headers.get('content-type') || 'video/mp4',
-      'Content-Disposition': `attachment; filename="video.${ext}"`,
-      'Cache-Control': 'no-store',
-    })
-    const len = upstream.headers.get('content-length')
-    if (len) headers.set('Content-Length', len)
+    const mime = format === 'mp3' ? 'audio/mp4' : 'video/mp4'
 
-    return new Response(upstream.body, { headers })
+    return new Response(stream, {
+      headers: {
+        'Content-Type': mime,
+        'Content-Disposition': `attachment; filename="video.${ext}"`,
+        'Cache-Control': 'no-store',
+      },
+    })
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     console.error('[/api/download]', message)

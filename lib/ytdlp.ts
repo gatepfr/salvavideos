@@ -116,3 +116,21 @@ export async function getDirectUrl(
   ], spawnFn)
   return output.split('\n')[0]
 }
+
+// Streams the download directly from yt-dlp stdout — avoids CDN 403 issues
+// caused by missing Referer/cookie headers when the browser fetches the URL.
+export async function spawnStream(
+  url: string,
+  format: 'mp4_720' | 'mp4_1080' | 'mp3'
+): Promise<ReadableStream<Uint8Array>> {
+  await ensureBinary()
+  const proc = nodeSpawn(BIN_PATH, [
+    url,
+    '--format', FORMAT_STRINGS[format],
+    '--no-warnings',
+    '-o', '-',
+  ])
+
+  const { Readable } = await import('stream')
+  return Readable.toWeb(proc.stdout!) as ReadableStream<Uint8Array>
+}
