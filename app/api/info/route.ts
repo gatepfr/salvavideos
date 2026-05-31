@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(info)
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
+    console.error('[/api/info] erro:', message, error)
     if (message === 'TIMEOUT') {
       return NextResponse.json(
         { error: 'A busca demorou demais. Tente novamente.' },
