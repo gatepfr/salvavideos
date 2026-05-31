@@ -93,7 +93,7 @@ export async function getAudioTempFile(url: string): Promise<string> {
     const proc = raw(url, {
       extractAudio: true,
       audioFormat: 'mp3',
-      audioQuality: '0',
+      audioQuality: 0,
       ffmpegLocation: ffmpegPath ?? undefined,
       noPlaylist: true,
       noWarnings: true,
