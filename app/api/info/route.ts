@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(info)
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
-    console.error('[/api/info] erro:', message, error)
+    console.error('[/api/info] erro completo:', message)
     if (message === 'TIMEOUT') {
       return NextResponse.json(
         { error: 'A busca demorou demais. Tente novamente.' },
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       )
     }
     return NextResponse.json(
-      { error: 'Não foi possível processar este vídeo. Tente novamente.' },
+      { error: `Erro: ${message || 'desconhecido'}` },
       { status: 500 }
     )
   }

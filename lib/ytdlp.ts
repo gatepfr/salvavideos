@@ -17,11 +17,10 @@ interface YtdlpJsonOutput {
   webpage_url?: string
 }
 
-// Bypasses YouTube bot detection on data-center IPs (Vercel/AWS)
+// tv_embedded is the only YouTube player client that works from data-center IPs
+// without a PO token. android/ios/web require PO tokens since late 2023.
 const YOUTUBE_BYPASS: Flags & Record<string, unknown> = {
-  extractorArgs: 'youtube:player_client=android,web',
-  userAgent:
-    'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+  extractorArgs: 'youtube:player_client=tv_embedded,skip_webpage',
 }
 
 export async function getVideoInfo(url: string): Promise<VideoInfo> {
