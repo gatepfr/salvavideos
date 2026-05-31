@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  serverExternalPackages: ['youtube-dl-exec', 'ffmpeg-static'],
+}
 
-export default nextConfig;
+export default nextConfig
