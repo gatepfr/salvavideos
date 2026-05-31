@@ -17,7 +17,12 @@ export async function GET(request: NextRequest) {
   }
   try {
     const info = await getVideoInfo(url)
-    return NextResponse.json(info)
+    // Instagram CDN bloqueia acesso direto do browser — proxia pelo servidor
+    const payload =
+      info.platform === 'instagram' && info.thumbnail
+        ? { ...info, thumbnail: `/api/thumbnail?url=${encodeURIComponent(info.thumbnail)}` }
+        : info
+    return NextResponse.json(payload)
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     console.error('[/api/info]', message)
