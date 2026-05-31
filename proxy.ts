@@ -5,7 +5,7 @@ const MAX_REQUESTS = 10
 
 const store = new Map<string, { count: number; resetAt: number }>()
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   if (!request.nextUrl.pathname.startsWith('/api/')) {
     return NextResponse.next()
   }
