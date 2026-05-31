@@ -3,27 +3,10 @@ import { NextRequest } from 'next/server'
 
 vi.mock('@/lib/ytdlp', () => ({
   getDirectUrl: vi.fn(),
-  getAudioTempFile: vi.fn(),
 }))
 
-vi.mock('fs/promises', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('fs/promises')>()
-  return {
-    ...actual,
-    stat: vi.fn(),
-    unlink: vi.fn().mockResolvedValue(undefined),
-  }
-})
-
-vi.mock('fs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('fs')>()
-  return {
-    ...actual,
-    createReadStream: vi.fn(),
-  }
-})
-
-const VALID_URL = 'https://www.youtube.com/watch?v=abc'
+const YOUTUBE_URL = 'https://www.youtube.com/watch?v=abc'
+const TIKTOK_URL = 'https://www.tiktok.com/@user/video/123'
 
 async function callGet(url?: string, format?: string) {
   const { GET } = await import('@/app/api/download/route')
@@ -42,7 +25,7 @@ describe('GET /api/download', () => {
   })
 
   it('returns 400 for invalid format', async () => {
-    const res = await callGet(VALID_URL, 'webm')
+    const res = await callGet(YOUTUBE_URL, 'webm')
     expect(res.status).toBe(400)
   })
 
@@ -51,28 +34,27 @@ describe('GET /api/download', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns redirectUrl for mp4_720', async () => {
-    const { getDirectUrl } = await import('@/lib/ytdlp')
-    vi.mocked(getDirectUrl).mockResolvedValue('https://cdn.example.com/video.mp4')
-    const res = await callGet(VALID_URL, 'mp4_720')
+  it('returns cobaltUrl for YouTube (blocked on server)', async () => {
+    const res = await callGet(YOUTUBE_URL, 'mp4_720')
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.redirectUrl).toBe('https://cdn.example.com/video.mp4')
+    expect(body.cobaltUrl).toContain('cobalt.tools')
+    expect(body.cobaltUrl).toContain(encodeURIComponent(YOUTUBE_URL))
   })
 
-  it('returns redirectUrl for mp4_1080', async () => {
+  it('returns redirectUrl for TikTok mp4_720', async () => {
     const { getDirectUrl } = await import('@/lib/ytdlp')
-    vi.mocked(getDirectUrl).mockResolvedValue('https://cdn.example.com/video-1080.mp4')
-    const res = await callGet(VALID_URL, 'mp4_1080')
+    vi.mocked(getDirectUrl).mockResolvedValue('https://cdn.tiktok.com/video.mp4')
+    const res = await callGet(TIKTOK_URL, 'mp4_720')
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.redirectUrl).toBe('https://cdn.example.com/video-1080.mp4')
+    expect(body.redirectUrl).toBe('https://cdn.tiktok.com/video.mp4')
   })
 
-  it('returns 500 when getDirectUrl throws', async () => {
+  it('returns 500 when getDirectUrl throws for TikTok', async () => {
     const { getDirectUrl } = await import('@/lib/ytdlp')
     vi.mocked(getDirectUrl).mockRejectedValue(new Error('Not found'))
-    const res = await callGet(VALID_URL, 'mp4_720')
+    const res = await callGet(TIKTOK_URL, 'mp4_720')
     expect(res.status).toBe(500)
   })
 })

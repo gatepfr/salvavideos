@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDirectUrl } from '@/lib/ytdlp'
 import { isAllowedUrl } from '@/lib/validate-url'
+import { detectPlatform } from '@/lib/video-info'
 
 export const maxDuration = 60
 
@@ -20,6 +21,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Formato inválido.' }, { status: 400 })
   }
 
+  // YouTube blocks server IPs — send user to cobalt.tools which handles auth.
+  if (detectPlatform(url) === 'youtube') {
+    return NextResponse.json({ cobaltUrl: `https://cobalt.tools/?u=${encodeURIComponent(url)}` })
+  }
+
   try {
     const redirectUrl = await getDirectUrl(url, format as 'mp4_720' | 'mp4_1080' | 'mp3')
     return NextResponse.json({ redirectUrl })
@@ -29,6 +35,6 @@ export async function GET(request: NextRequest) {
     if (message.includes('408') || message.includes('timeout')) {
       return NextResponse.json({ error: 'Download demorou demais. Tente novamente.' }, { status: 504 })
     }
-    return NextResponse.json({ error: 'Não foi possível baixar este vídeo.', debug: message }, { status: 500 })
+    return NextResponse.json({ error: 'Não foi possível baixar este vídeo.' }, { status: 500 })
   }
 }

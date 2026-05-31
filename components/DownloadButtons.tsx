@@ -19,10 +19,13 @@ export default function DownloadButtons({ url, formats, onDownloadStart, onDownl
     try {
       const res = await fetch(`/api/download?url=${encodeURIComponent(url)}&format=${format}`)
       if (!res.ok) throw new Error('Download failed')
-      const { redirectUrl } = await res.json()
-      // window.location.href cannot be blocked by popup blockers and
-      // triggers a file download when the server sends Content-Disposition: attachment
-      window.location.href = redirectUrl
+      const data = await res.json()
+      if (data.cobaltUrl) {
+        // YouTube: server IPs are blocked, send user to cobalt.tools
+        window.open(data.cobaltUrl, '_blank', 'noopener')
+      } else {
+        window.location.href = data.redirectUrl
+      }
     } finally {
       onDownloadEnd()
     }
