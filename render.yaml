@@ -1,10 +1,8 @@
 services:
   - type: web
     name: salvavideos
-    runtime: node
+    env: docker
     plan: free
-    buildCommand: npm ci && node scripts/setup-ytdlp.mjs && npm run build
-    startCommand: npm start
     healthCheckPath: /
     envVars:
       - key: NODE_ENV

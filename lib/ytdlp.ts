@@ -5,8 +5,11 @@ import { getVideoInfo } from './video-info'
 
 export { getVideoInfo }
 
-const BIN_NAME = os.platform() === 'win32' ? 'yt-dlp.exe' : 'yt-dlp'
-export const BIN_PATH = path.join(process.cwd(), 'bin', BIN_NAME)
+export const BIN_PATH = process.env.YTDLP_PATH ?? (
+  os.platform() === 'win32'
+    ? path.join(process.cwd(), 'bin', 'yt-dlp.exe')
+    : '/usr/local/bin/yt-dlp'
+)
 
 // Single-stream formats — no ffmpeg required.
 // YouTube pre-merges streams up to 720p; above that needs ffmpeg.
