@@ -23,8 +23,8 @@ function runYtDlp(args: string[], spawnFn: SpawnFn = nodeSpawn): Promise<string>
     const proc = spawnFn(BIN_PATH, args, { timeout: 30_000 })
     let stdout = ''
     let stderr = ''
-    proc.stdout.on('data', (d: Buffer) => { stdout += d.toString() })
-    proc.stderr.on('data', (d: Buffer) => { stderr += d.toString() })
+    proc.stdout!.on('data', (d: Buffer) => { stdout += d.toString() })
+    proc.stderr!.on('data', (d: Buffer) => { stderr += d.toString() })
     proc.on('close', (code) => {
       if (code !== 0) reject(new Error(stderr.trim() || `yt-dlp exited ${code}`))
       else resolve(stdout.trim())
