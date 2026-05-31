@@ -39,9 +39,13 @@ export async function GET(request: NextRequest) {
 
   const platform = detectPlatform(url)
 
-  // YouTube blocks server IPs — send user to cobalt.tools which handles auth.
+  // YouTube blocks server IPs — open ssyoutube.com in a new tab.
   if (platform === 'youtube') {
-    return NextResponse.json({ cobaltUrl: `https://cobalt.tools/?u=${encodeURIComponent(url)}` })
+    const videoId = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1]
+    const ssUrl = videoId
+      ? `https://www.ssyoutube.com/watch?v=${videoId}`
+      : url.replace('youtube.com', 'ssyoutube.com')
+    return NextResponse.json({ cobaltUrl: ssUrl })
   }
 
   try {
