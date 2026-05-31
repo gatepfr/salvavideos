@@ -1,15 +1,58 @@
 import { spawn as nodeSpawn, type SpawnOptionsWithoutStdio } from 'child_process'
+import { existsSync, createWriteStream, chmodSync } from 'fs'
+import https from 'https'
 import path from 'path'
 import os from 'os'
 import { getVideoInfo } from './video-info'
 
 export { getVideoInfo }
 
+const YTDLP_URL =
+  'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp'
+
 export const BIN_PATH = process.env.YTDLP_PATH ?? (
   os.platform() === 'win32'
     ? path.join(process.cwd(), 'bin', 'yt-dlp.exe')
-    : '/usr/local/bin/yt-dlp'
+    : '/tmp/yt-dlp'
 )
+
+// Singleton promise so concurrent requests share one download.
+let downloadPromise: Promise<void> | null = null
+
+function downloadBinary(url: string, dest: string, hops = 0): Promise<void> {
+  if (hops > 5) return Promise.reject(new Error('Too many redirects'))
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        downloadBinary(res.headers.location!, dest, hops + 1).then(resolve).catch(reject)
+        return
+      }
+      if (res.statusCode !== 200) {
+        reject(new Error(`yt-dlp download failed: HTTP ${res.statusCode}`))
+        return
+      }
+      const file = createWriteStream(dest)
+      res.pipe(file)
+      file.on('finish', () => {
+        file.close()
+        chmodSync(dest, 0o755)
+        resolve()
+      })
+      file.on('error', reject)
+    }).on('error', reject)
+  })
+}
+
+async function ensureBinary(): Promise<void> {
+  if (existsSync(BIN_PATH)) return
+  if (!downloadPromise) {
+    downloadPromise = downloadBinary(YTDLP_URL, BIN_PATH).catch((e) => {
+      downloadPromise = null
+      throw e
+    })
+  }
+  return downloadPromise
+}
 
 // Single-stream formats — no ffmpeg required.
 // YouTube pre-merges streams up to 720p; above that needs ffmpeg.
@@ -21,9 +64,11 @@ const FORMAT_STRINGS: Record<'mp4_720' | 'mp4_1080' | 'mp3', string> = {
 
 type SpawnFn = (cmd: string, args: string[], opts?: SpawnOptionsWithoutStdio) => ReturnType<typeof nodeSpawn>
 
-function runYtDlp(args: string[], spawnFn: SpawnFn = nodeSpawn): Promise<string> {
+async function runYtDlp(args: string[], spawnFn?: SpawnFn): Promise<string> {
+  const fn = spawnFn ?? nodeSpawn
+  if (!spawnFn) await ensureBinary()
   return new Promise((resolve, reject) => {
-    const proc = spawnFn(BIN_PATH, args, { timeout: 30_000 })
+    const proc = fn(BIN_PATH, args, { timeout: 30_000 })
     let stdout = ''
     let stderr = ''
     proc.stdout!.on('data', (d: Buffer) => { stdout += d.toString() })
