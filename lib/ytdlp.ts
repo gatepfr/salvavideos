@@ -1,5 +1,6 @@
 import youtubeDl, { exec as raw } from 'youtube-dl-exec'
 import ffmpegPath from 'ffmpeg-static'
+import type { Flags } from 'youtube-dl-exec'
 
 export interface VideoInfo {
   title: string
@@ -16,12 +17,20 @@ interface YtdlpJsonOutput {
   webpage_url?: string
 }
 
+// Bypasses YouTube bot detection on data-center IPs (Vercel/AWS)
+const YOUTUBE_BYPASS: Flags & Record<string, unknown> = {
+  extractorArgs: 'youtube:player_client=android,web',
+  userAgent:
+    'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+}
+
 export async function getVideoInfo(url: string): Promise<VideoInfo> {
   const data = (await youtubeDl(url, {
     dumpSingleJson: true,
     noWarnings: true,
     noPlaylist: true,
-  })) as YtdlpJsonOutput
+    ...YOUTUBE_BYPASS,
+  } as Flags)) as YtdlpJsonOutput
 
   return {
     title: data.title,
@@ -47,7 +56,8 @@ export async function getDirectUrl(
       noWarnings: true,
       noPlaylist: true,
       format: formatSelector,
-    })
+      ...YOUTUBE_BYPASS,
+    } as Flags)
 
     let stdout = ''
     let stderr = ''
@@ -98,7 +108,8 @@ export async function getAudioTempFile(url: string): Promise<string> {
       noPlaylist: true,
       noWarnings: true,
       output: tmpFile,
-    })
+      ...YOUTUBE_BYPASS,
+    } as Flags)
 
     let stderr = ''
     proc.stderr?.on('data', (d: Buffer) => { stderr += d.toString() })
