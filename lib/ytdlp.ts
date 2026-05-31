@@ -3,9 +3,7 @@ import { existsSync, createWriteStream, chmodSync } from 'fs'
 import https from 'https'
 import path from 'path'
 import os from 'os'
-import { getVideoInfo } from './video-info'
-
-export { getVideoInfo }
+import { getVideoInfo as oembedVideoInfo, detectPlatform, type VideoInfo } from './video-info'
 
 const YTDLP_URL =
   'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp'
@@ -79,6 +77,29 @@ async function runYtDlp(args: string[], spawnFn?: SpawnFn): Promise<string> {
     })
     proc.on('error', reject)
   })
+}
+
+// Instagram's oEmbed API requires auth since 2020 — use yt-dlp for metadata instead.
+async function getInstagramInfo(url: string, spawnFn?: SpawnFn): Promise<VideoInfo> {
+  const output = await runYtDlp([
+    url,
+    '--print', '%(title)s\n%(thumbnail)s\n%(duration)s',
+    '--no-download',
+    '--no-warnings',
+  ], spawnFn)
+  const [title, thumbnail, durationStr] = output.split('\n')
+  return {
+    title: title || 'Instagram Video',
+    thumbnail: thumbnail || '',
+    duration: parseInt(durationStr, 10) || 0,
+    platform: 'instagram',
+    formats: ['mp4_720', 'mp4_1080', 'mp3'],
+  }
+}
+
+export async function getVideoInfo(url: string, spawnFn?: SpawnFn): Promise<VideoInfo> {
+  if (detectPlatform(url) === 'instagram') return getInstagramInfo(url, spawnFn)
+  return oembedVideoInfo(url)
 }
 
 export async function getDirectUrl(
