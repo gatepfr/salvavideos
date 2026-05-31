@@ -19,21 +19,13 @@ export default function DownloadButtons({ url, formats, onDownloadStart, onDownl
     try {
       const res = await fetch(`/api/download?url=${encodeURIComponent(url)}&format=${format}`)
       if (!res.ok) throw new Error('Download failed')
-      if (format === 'mp3') {
-        const blob = await res.blob()
-        const a = document.createElement('a')
-        a.href = URL.createObjectURL(blob)
-        a.download = 'audio.mp3'
-        a.click()
-        URL.revokeObjectURL(a.href)
-      } else {
-        const { redirectUrl } = await res.json()
-        const a = document.createElement('a')
-        a.href = redirectUrl
-        a.download = 'video.mp4'
-        a.target = '_blank'
-        a.click()
-      }
+      const { redirectUrl, filename } = await res.json()
+      const a = document.createElement('a')
+      a.href = redirectUrl
+      a.download = filename ?? (format === 'mp3' ? 'audio.mp3' : 'video.mp4')
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      a.click()
     } finally {
       onDownloadEnd()
     }

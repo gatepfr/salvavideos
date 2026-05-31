@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getVideoInfo } from '@/lib/ytdlp'
+import { getVideoInfo } from '@/lib/video-info'
 import { isAllowedUrl } from '@/lib/validate-url'
 
 export const maxDuration = 30
@@ -20,21 +20,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(info)
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
-    console.error('[/api/info] erro completo:', message)
-    if (message === 'TIMEOUT') {
-      return NextResponse.json(
-        { error: 'A busca demorou demais. Tente novamente.' },
-        { status: 504 }
-      )
+    console.error('[/api/info]', message)
+    if (message.includes('408') || message.includes('timeout')) {
+      return NextResponse.json({ error: 'A busca demorou demais. Tente novamente.' }, { status: 504 })
     }
     if (/private|not available|unavailable/i.test(message)) {
-      return NextResponse.json(
-        { error: 'Este vídeo não está disponível para download.' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Este vídeo não está disponível.' }, { status: 404 })
     }
     return NextResponse.json(
-      { error: `Erro: ${message || 'desconhecido'}` },
+      { error: 'Não foi possível processar este vídeo. Tente novamente.' },
       { status: 500 }
     )
   }

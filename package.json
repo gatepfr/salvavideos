@@ -1,5 +1,5 @@
 {
-  "name": "baixar_yotube",
+  "name": "salvavideos",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,15 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
-    "test:run": "vitest run",
-    "postinstall": "node scripts/prepare-ytdlp.js"
+    "test:run": "vitest run"
   },
   "dependencies": {
-    "ffmpeg-static": "^5.3.0",
     "next": "16.2.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "youtube-dl-exec": "^3.1.7"
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
