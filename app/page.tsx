@@ -47,7 +47,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white flex flex-col items-center justify-start pt-16 px-4">
       <div className="w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-indigo-600 text-center mb-1">VidDown</h1>
+        <h1 className="text-3xl font-bold text-indigo-600 text-center mb-1">Salva Videos</h1>
         <p className="text-gray-400 text-center text-sm mb-8">
           YouTube · TikTok · Instagram
         </p>
