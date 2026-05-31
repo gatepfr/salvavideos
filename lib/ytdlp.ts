@@ -1,4 +1,4 @@
-import youtubeDl, { raw } from 'youtube-dl-exec'
+import youtubeDl, { exec as raw } from 'youtube-dl-exec'
 import ffmpegPath from 'ffmpeg-static'
 
 export interface VideoInfo {
