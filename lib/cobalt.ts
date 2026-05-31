@@ -29,14 +29,25 @@ export async function getCobaltUrl(
     body.videoQuality = format === 'mp4_1080' ? '1080' : '720'
   }
 
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  }
+  if (process.env.COBALT_API_TOKEN) {
+    headers.Authorization = `Api-Key ${process.env.COBALT_API_TOKEN}`
+  }
+
   const res = await fetch(COBALT_API, {
     method: 'POST',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(25_000),
   })
 
-  if (!res.ok) throw new Error(`cobalt ${res.status}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(`cobalt ${res.status}: ${body}`)
+  }
 
   const data: CobaltResponse = await res.json()
 
