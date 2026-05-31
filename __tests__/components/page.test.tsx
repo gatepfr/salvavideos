@@ -9,7 +9,7 @@ beforeEach(() => {
 describe('Home page', () => {
   it('renders the site name and input', () => {
     render(<Home />)
-    expect(screen.getByText('VidDown')).toBeInTheDocument()
+    expect(screen.getByText('Salva Videos')).toBeInTheDocument()
     expect(screen.getByRole('textbox')).toBeInTheDocument()
   })
 

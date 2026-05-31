@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getVideoInfo } from '@/lib/video-info'
+import { getVideoInfo } from '@/lib/ytdlp'
 import { isAllowedUrl } from '@/lib/validate-url'
 
 export const maxDuration = 30
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     console.error('[/api/info]', message)
-    if (message.includes('408') || message.includes('timeout')) {
+    if (message.includes('408') || /timeout/i.test(message)) {
       return NextResponse.json({ error: 'A busca demorou demais. Tente novamente.' }, { status: 504 })
     }
     if (/private|not available|unavailable/i.test(message)) {

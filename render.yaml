@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: salvavideos
+    runtime: node
+    plan: free
+    buildCommand: npm ci && node scripts/setup-ytdlp.mjs && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000

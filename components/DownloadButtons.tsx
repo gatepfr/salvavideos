@@ -8,7 +8,7 @@ const FORMAT_LABELS: Record<string, string> = {
 
 interface Props {
   url: string
-  formats: Array<'mp4_720' | 'mp4_1080' | 'mp3'>
+  formats: ReadonlyArray<'mp4_720' | 'mp4_1080' | 'mp3'>
   onDownloadStart: () => void
   onDownloadEnd: () => void
 }

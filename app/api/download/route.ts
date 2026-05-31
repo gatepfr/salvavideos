@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCobaltUrl } from '@/lib/cobalt'
+import { getDirectUrl } from '@/lib/ytdlp'
 import { isAllowedUrl } from '@/lib/validate-url'
 
 export const maxDuration = 60
@@ -21,11 +21,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { url: downloadUrl, filename } = await getCobaltUrl(
-      url,
-      format as 'mp4_720' | 'mp4_1080' | 'mp3'
-    )
-    return NextResponse.json({ redirectUrl: downloadUrl, filename })
+    const redirectUrl = await getDirectUrl(url, format as 'mp4_720' | 'mp4_1080' | 'mp3')
+    return NextResponse.json({ redirectUrl })
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     console.error('[/api/download]', message)
