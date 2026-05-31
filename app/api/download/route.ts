@@ -13,9 +13,19 @@ const EXTENSIONS: Record<string, string> = {
   mp3: 'm4a',
 }
 
+function safeFilename(title: string, ext: string): string {
+  const base = title
+    .replace(/[\\/:*?"<>|]/g, '')   // caracteres inválidos em nome de arquivo
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 100) || 'video'
+  return `${base}.${ext}`
+}
+
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get('url')
   const format = request.nextUrl.searchParams.get('format')
+  const titleParam = request.nextUrl.searchParams.get('title') ?? ''
 
   if (!url || !format) {
     return NextResponse.json({ error: 'Parâmetros url e format são obrigatórios.' }, { status: 400 })
@@ -39,11 +49,12 @@ export async function GET(request: NextRequest) {
     const stream = await spawnStream(url, fmt)
     const ext = EXTENSIONS[format] ?? 'mp4'
     const mime = format === 'mp3' ? 'audio/mp4' : 'video/mp4'
+    const filename = safeFilename(titleParam, ext)
 
     return new Response(stream, {
       headers: {
         'Content-Type': mime,
-        'Content-Disposition': `attachment; filename="video.${ext}"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
         'Cache-Control': 'no-store',
       },
     })

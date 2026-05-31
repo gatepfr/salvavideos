@@ -65,6 +65,7 @@ export default function Home() {
             />
             <DownloadButtons
               url={currentUrl}
+              title={videoInfo.title}
               formats={videoInfo.formats}
               onDownloadStart={() => setState('downloading')}
               onDownloadEnd={() => setState('preview')}

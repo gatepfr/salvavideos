@@ -5,6 +5,11 @@ import path from 'path'
 import os from 'os'
 import { getVideoInfo as oembedVideoInfo, detectPlatform, type VideoInfo } from './video-info'
 
+const INSTAGRAM_EXTRA_ARGS = [
+  '--add-headers', 'Referer:https://www.instagram.com/',
+  '--no-playlist',
+]
+
 const YTDLP_URL =
   'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp'
 
@@ -86,6 +91,7 @@ async function getInstagramInfo(url: string, spawnFn?: SpawnFn): Promise<VideoIn
     '--print', '%(title)s\n%(thumbnail)s\n%(duration)s',
     '--no-download',
     '--no-warnings',
+    ...INSTAGRAM_EXTRA_ARGS,
   ], spawnFn)
   const [title, thumbnail, durationStr] = output.split('\n')
   return {
@@ -124,11 +130,14 @@ export async function spawnStream(
   format: 'mp4_720' | 'mp4_1080' | 'mp3'
 ): Promise<ReadableStream<Uint8Array>> {
   await ensureBinary()
+  const platform = detectPlatform(url)
+  const extraArgs = platform === 'instagram' ? INSTAGRAM_EXTRA_ARGS : []
   const proc = nodeSpawn(BIN_PATH, [
     url,
     '--format', FORMAT_STRINGS[format],
     '--no-warnings',
     '-o', '-',
+    ...extraArgs,
   ])
 
   const { Readable } = await import('stream')

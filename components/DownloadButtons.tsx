@@ -8,6 +8,7 @@ const FORMAT_LABELS: Record<string, string> = {
 
 interface Props {
   url: string
+  title: string
   formats: ReadonlyArray<'mp4_720' | 'mp4_1080' | 'mp3'>
   onDownloadStart: () => void
   onDownloadEnd: () => void
@@ -17,7 +18,7 @@ function isYouTube(url: string) {
   return url.includes('youtube.com') || url.includes('youtu.be')
 }
 
-export default function DownloadButtons({ url, formats, onDownloadStart, onDownloadEnd }: Props) {
+export default function DownloadButtons({ url, title, formats, onDownloadStart, onDownloadEnd }: Props) {
   async function handleDownload(format: string) {
     onDownloadStart()
     try {
@@ -28,7 +29,7 @@ export default function DownloadButtons({ url, formats, onDownloadStart, onDownl
         if (data.cobaltUrl) window.open(data.cobaltUrl, '_blank', 'noopener')
       } else {
         // Navigate directly — browser starts the proxied stream as a file download
-        window.location.href = `/api/download?url=${encodeURIComponent(url)}&format=${format}`
+        window.location.href = `/api/download?url=${encodeURIComponent(url)}&format=${format}&title=${encodeURIComponent(title)}`
       }
     } finally {
       onDownloadEnd()
