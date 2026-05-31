@@ -55,9 +55,9 @@ async function ensureBinary(): Promise<void> {
 // Single-stream formats — no ffmpeg required.
 // YouTube pre-merges streams up to 720p; above that needs ffmpeg.
 const FORMAT_STRINGS: Record<'mp4_720' | 'mp4_1080' | 'mp3', string> = {
-  mp4_720: 'best[ext=mp4][height<=720]/best[height<=720]',
-  mp4_1080: 'best[ext=mp4]/best',
-  mp3: 'bestaudio[ext=m4a]/bestaudio',
+  mp4_720: 'best[height<=720]/best',
+  mp4_1080: 'best[height<=1080]/best',
+  mp3: 'bestaudio',
 }
 
 type SpawnFn = (cmd: string, args: string[], opts?: SpawnOptionsWithoutStdio) => ReturnType<typeof nodeSpawn>
